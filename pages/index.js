@@ -4,8 +4,8 @@ import Login from "../components/Login";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import Feed from "../components/Feed";
-
-// {styles.container}
+import Widgets from "../components/Widgets";
+import { db } from "../firebase";
 
 export default function Home() {
   const { status } = useSession({
@@ -22,15 +22,11 @@ export default function Home() {
       <Head>
         <title>Facebook</title>
       </Head>
-
-      {/* HEADER */}
       <Header />
-
       <main className="flex">
         <Sidebar />
-
         <Feed />
-        {/*widgets*/}
+        <Widgets />
       </main>
     </div>
   );
@@ -39,9 +35,19 @@ export default function Home() {
 export async function getServerSideProps(context) {
   // get the user
   const session = await getSession(context);
+
+  const posts = await db.collection("posts").orderBy("timestamp", "desc").get();
+
+  const docs = posts.docs.map((post) => ({
+    id: post.id,
+    ...post.data(),
+    timestamp: null,
+  }));
+
   return {
     props: {
       session,
+      posts: docs,
     },
   };
 }
